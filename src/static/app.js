@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const spotsLeft = details.max_participants - details.participants.length;
 
         const participantsList = details.participants.length > 0
-          ? `<ul>${details.participants.map(p => `<li>${p}</li>`).join("")}</ul>`
+          ? `<ul>${details.participants.map(p => `<li>${p} <span class="delete-icon" data-activity="${name}" data-email="${p}">🗑️</span></li>`).join("")}</ul>`
           : `<p class="no-participants"><em>No participants yet</em></p>`;
 
         activityCard.innerHTML = `
@@ -86,6 +86,25 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Delegated handler for delete icons to unregister participants
+  activitiesList.addEventListener('click', async (e) => {
+    if (!e.target.classList.contains('delete-icon')) return;
+    const activity = e.target.dataset.activity;
+    const email = e.target.dataset.email;
+    try {
+      const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        fetchActivities();
+      } else {
+        console.error('Failed to unregister participant', await response.text());
+      }
+    } catch (err) {
+      console.error('Error unregistering participant:', err);
     }
   });
 
